@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:400,700"
+      rel="stylesheet"
+    />
+  </head>
+  <style>
+    #container {
+      max-width: 1000px;
+      width: 100%;
+      min-height: 80vh;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      margin: 0 auto;
+      font-family: "Roboto", sans-serif;
+    }
+
+    #chatForm {
+      margin-top: 30px;
+      width: 100%;
+      display: none;
+      flex-direction: column;
+    }
+
+    #message {
+      height: 80px;
+      resize: none;
+    }
+
+    #submit {
+      cursor: pointer;
+      margin-top: 15px;
+      padding: 15px;
+      border: none;
+      background: #34495e;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.15rem;
+      transition: all ease-in 0.2s;
+    }
+
+    #submit:hover {
+      background: #41b883;
+    }
+
+    #chat {
+      width: 100%;
+      align-self: flex-start;
+    }
+
+    .bubble {
+      background: #efefef;
+      padding: 20px;
+      margin: 10px 0px;
+    }
+
+    #userNameForm {
+      display: flex;
+      flex-direction: column;
+      margin-right: 15px;
+    }
+
+    #username{
+      height: 30px;
+      padding: 10px 0px;
+    }
+
+    #listOfUsers{
+      margin-top: 20px;
+    }
+  </style>
+  <body>
+    <div id="container">
+      <div id="chat"></div>
+
+      <form id="userNameForm">
+        <input type="text" id="username"  />
+        <input type="submit" id="submit" value="Create Username" />
+      </form>
+
+      <form id="chatForm">
+        <textarea id="message"></textarea>
+        <input type="submit" id="submit" value="Send" />
+      </form>
+
+      <div id="listOfUsers"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io.connect();
+      let messageForm = document.querySelector("#chatForm");
+      let userNameForm = document.querySelector("#userNameForm");
+      let username = document.querySelector('#username');
+      let message = document.querySelector("#message");
+      let chat = document.querySelector("#chat");
+      let listOfUsers = document.querySelector("#listOfUsers");
+
+      messageForm.addEventListener("submit", e => {
+        e.preventDefault();
+        socket.emit("send message", message.value);
+        message.value = "";
+      });
+
+      userNameForm.addEventListener("submit", e => {
+        e.preventDefault();
+        socket.emit("new user", username.value);
+        username.value = "";
+        userNameForm.style.display = 'none';
+        messageForm.style.display = 'flex';
+      });
+
+      socket.on("new message", data => {
+        let tempDiv = document.createElement("div");
+        tempDiv.classList.add("bubble");
+        tempDiv.innerHTML = `<strong> ${data.user}: </strong> ${data.msg}`;
+        chat.append(tempDiv);
+      });
+
+      socket.on('get users', (data) => {
+        let tempDiv = document.createElement("div");
+        data.forEach(item => {
+          tempDiv.innerHTML += `${item} <br>`;
+        })
+
+        listOfUsers.append(tempDiv);
+      })
+    </script>
+  </body>
+</html>
